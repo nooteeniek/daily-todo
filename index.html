@@ -252,12 +252,29 @@
             font-weight: 800;
         }
 
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
+        .calendar-viewport {
+            overflow: hidden;
             border-top: 1px solid var(--border);
             border-left: 1px solid var(--border);
             background: var(--border);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            background: var(--border);
+            touch-action: pan-y;
+            transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+            user-select: none;
+            will-change: transform;
+        }
+
+        .calendar-grid.dragging {
+            transition: none;
+        }
+
+        .calendar-grid.preparing {
+            transition: none;
         }
 
         .weekday,
@@ -287,6 +304,10 @@
         .day-cell.outside {
             background: #f6f8fa;
             color: #8c959f;
+        }
+
+        .day-cell.weekend:not(.outside) {
+            background: #f6f8fa;
         }
 
         .day-number {
@@ -403,7 +424,9 @@
                 <div id="calendar-month-title" class="month-title"></div>
                 <button type="button" onclick="moveCalendarMonth(1)">次の月</button>
             </div>
-            <div id="garbage-calendar" class="calendar-grid"></div>
+            <div class="calendar-viewport">
+                <div id="garbage-calendar" class="calendar-grid"></div>
+            </div>
             <div class="legend">
                 <span class="garbage-tag burnable">もやすごみ</span>
                 <span class="garbage-tag plastic">プラスチック</span>
@@ -429,6 +452,10 @@
         const todayDate = new Date();
         const today = toDateKey(todayDate);
         let calendarCursor = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+        let calendarTouchStartX = 0;
+        let calendarTouchStartY = 0;
+        let calendarTouchDiffX = 0;
+        let isCalendarAnimating = false;
 
         const GARBAGE_RULES = [
             { label: "もやすごみ", className: "burnable", test: date => [1, 4].includes(date.getDay()) },
@@ -534,7 +561,8 @@
 
                 const cell = document.createElement("div");
                 const isOutside = date.getMonth() !== month;
-                cell.className = `day-cell ${isOutside ? "outside" : ""}`;
+                const isWeekend = [0, 6].includes(date.getDay());
+                cell.className = `day-cell ${isOutside ? "outside" : ""} ${isWeekend ? "weekend" : ""}`;
 
                 const dayNumber = document.createElement("div");
                 dayNumber.className = `day-number ${toDateKey(date) === today ? "today" : ""}`;
@@ -570,9 +598,79 @@
         };
 
         window.moveCalendarMonth = function(offset) {
-            calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + offset, 1);
-            renderGarbageCalendar();
+            if (isCalendarAnimating) return;
+
+            const grid = document.getElementById("garbage-calendar");
+            const exitX = offset > 0 ? "-100%" : "100%";
+            const enterX = offset > 0 ? "100%" : "-100%";
+            isCalendarAnimating = true;
+
+            grid.classList.remove("dragging", "preparing");
+            grid.style.transform = `translateX(${exitX})`;
+
+            window.setTimeout(() => {
+                calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + offset, 1);
+                renderGarbageCalendar();
+
+                grid.classList.add("preparing");
+                grid.style.transform = `translateX(${enterX})`;
+                grid.offsetHeight;
+
+                grid.classList.remove("preparing");
+                grid.style.transform = "";
+
+                window.setTimeout(() => {
+                    isCalendarAnimating = false;
+                }, 250);
+            }, 240);
         };
+
+        function initCalendarSwipe() {
+            const grid = document.getElementById("garbage-calendar");
+
+            grid.addEventListener("touchstart", event => {
+                if (isCalendarAnimating) return;
+                if (event.touches.length !== 1) return;
+                calendarTouchStartX = event.touches[0].clientX;
+                calendarTouchStartY = event.touches[0].clientY;
+                calendarTouchDiffX = 0;
+                grid.classList.add("dragging");
+            }, { passive: true });
+
+            grid.addEventListener("touchmove", event => {
+                if (isCalendarAnimating) return;
+                if (event.touches.length !== 1) return;
+
+                const diffX = event.touches[0].clientX - calendarTouchStartX;
+                const diffY = event.touches[0].clientY - calendarTouchStartY;
+                const isMostlyHorizontal = Math.abs(diffX) > 12 && Math.abs(diffX) > Math.abs(diffY) * 1.2;
+
+                if (!isMostlyHorizontal) return;
+                calendarTouchDiffX = Math.max(-90, Math.min(90, diffX * 0.45));
+                grid.style.transform = `translateX(${calendarTouchDiffX}px)`;
+            }, { passive: true });
+
+            grid.addEventListener("touchend", event => {
+                const touch = event.changedTouches[0];
+                if (!touch) return;
+
+                const diffX = touch.clientX - calendarTouchStartX;
+                const diffY = touch.clientY - calendarTouchStartY;
+                const isHorizontalSwipe = Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY) * 1.4;
+
+                grid.classList.remove("dragging");
+                grid.style.transform = "";
+
+                if (isHorizontalSwipe) {
+                    moveCalendarMonth(diffX < 0 ? 1 : -1);
+                }
+            }, { passive: true });
+
+            grid.addEventListener("touchcancel", () => {
+                grid.classList.remove("dragging");
+                grid.style.transform = "";
+            }, { passive: true });
+        }
 
         window.toggleHistory = function(show) {
             const panel = document.getElementById("history-panel");
@@ -621,6 +719,7 @@
         };
 
         init();
+        initCalendarSwipe();
     </script>
 </body>
 </html>

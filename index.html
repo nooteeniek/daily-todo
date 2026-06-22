@@ -7,224 +7,620 @@
     <style>
         :root {
             --bg-default: #f6f8fa;
-            --bg-active: #87CEEB; 
-            --toggle-on: #007bff;
+            --bg-active: #d8f1ff;
+            --text: #24292f;
+            --muted: #656d76;
+            --border: #d8dee4;
+            --surface: #ffffff;
+            --primary: #0969da;
+            --toggle-on: #0969da;
             --toggle-off: #afb8c1;
+            --burnable: #ffd8e6;
+            --plastic: #ffe1c2;
+            --paper: #dff7ee;
+            --bottle-can: #dbeafe;
+            --pet-bottle: #dcfce7;
+            --nonburnable: #fff4a8;
         }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-default);
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100dvh;
             margin: 0;
             display: flex;
             flex-direction: column;
-            min-height: 100dvh;
-            transition: background-color 0.5s ease;
+            background-color: var(--bg-default);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            transition: background-color 0.4s ease;
         }
 
         body.is-complete { background-color: var(--bg-active); }
 
-        /* 上部の余白を大きく取り、コンテンツを下に押し下げる */
         .spacer { flex-grow: 1; }
 
-        .container { 
-            background: white; 
-            padding: 24px 24px 30px 24px;
-            border-radius: 32px 32px 0 0; /* 角丸を少し強調 */
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.08);
-            max-width: 600px;
-            margin: 0 auto;
+        .container {
             width: 100%;
-            box-sizing: border-box;
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 24px 20px 28px;
+            border-radius: 28px 28px 0 0;
+            background: var(--surface);
+            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.08);
         }
 
-        /* タイトル等も控えめにして下に寄せる */
-        .header-area { text-align: center; margin-bottom: 20px; }
-        h1 { font-size: 1.2rem; margin: 0 0 4px 0; color: #333; }
-        .date { color: #656d76; font-size: 0.85rem; }
-        
-        /* 親指が届きやすい位置のメモ欄 */
-        .memo-in-container { margin-bottom: 15px; }
+        .header-area {
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 4px;
+            font-size: 1.25rem;
+        }
+
+        .date {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .congrats {
+            min-height: 1.4rem;
+            margin-bottom: 6px;
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .memo-in-container { margin-bottom: 14px; }
+
         #persistent-memo {
             width: 100%;
-            height: 90px;
+            height: 92px;
             padding: 12px;
-            border: 1px solid #e1e4e8;
+            border: 1px solid var(--border);
             border-radius: 14px;
-            font-size: 1rem;
-            resize: none;
-            box-sizing: border-box;
             background: #f8f9fa;
-            font-family: inherit;
+            font: inherit;
+            resize: none;
         }
 
-        .task-item { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid #f0f0f0; }
-        .task-label { font-size: 1.1rem; font-weight: 600; flex-grow: 1; }
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
 
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--toggle-off); transition: .3s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+        .task-label {
+            flex-grow: 1;
+            font-size: 1.05rem;
+            font-weight: 650;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            flex: 0 0 auto;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            width: 0;
+            height: 0;
+            opacity: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            border-radius: 34px;
+            background-color: var(--toggle-off);
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .slider::before {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            left: 4px;
+            bottom: 4px;
+            border-radius: 50%;
+            background-color: #fff;
+            content: "";
+            transition: 0.25s;
+        }
+
         input:checked + .slider { background-color: var(--toggle-on); }
-        input:checked + .slider:before { transform: translateX(26px); }
+        input:checked + .slider::before { transform: translateX(26px); }
 
-        /* 履歴ボタンも押しやすい位置に */
-        .btn-history {
-            display: block;
-            margin: 25px auto 5px;
-            padding: 12px 24px;
-            background: #f0f2f5;
-            border: none;
-            border-radius: 25px;
-            color: #555;
-            font-size: 0.85rem;
-            font-weight: 500;
+        .button-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
         }
 
-        /* 履歴パネル（下からスライド） */
-        #history-panel {
+        .panel-button {
+            flex: 1;
+            min-height: 44px;
+            padding: 10px 14px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            background: #f0f2f5;
+            color: #444;
+            font: inherit;
+            font-size: 0.92rem;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .panel-button.primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .sheet {
             position: fixed;
+            right: 0;
             bottom: -100%;
             left: 0;
-            right: 0;
-            background: #fff;
-            height: 80vh;
-            max-width: 600px;
-            margin: 0 auto;
-            transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 100;
-            border-radius: 24px 24px 0 0;
-            box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
-            padding: 24px;
             display: flex;
             flex-direction: column;
+            width: 100%;
+            max-width: 680px;
+            height: min(86vh, 760px);
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 24px 24px 0 0;
+            background: #fff;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.18);
+            transition: bottom 0.35s ease;
         }
-        #history-panel.open { bottom: 0; }
-        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .history-content { overflow-y: auto; flex-grow: 1; }
-        .history-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f5f5f5; }
 
-        .congrats { text-align: center; color: #007bff; font-weight: bold; min-height: 1.4rem; margin-bottom: 5px; font-size: 0.9rem; }
+        .sheet.open { bottom: 0; }
+
+        .sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .sheet-title {
+            font-size: 1.08rem;
+            font-weight: 750;
+        }
+
+        .close-button {
+            width: 42px;
+            height: 42px;
+            border: 0;
+            border-radius: 50%;
+            background: #f6f8fa;
+            color: var(--muted);
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .sheet-content {
+            min-height: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .calendar-controls {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .calendar-controls button {
+            min-height: 40px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--text);
+            font: inherit;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .month-title {
+            min-width: 7em;
+            text-align: center;
+            font-size: 1.08rem;
+            font-weight: 800;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            border-top: 1px solid var(--border);
+            border-left: 1px solid var(--border);
+            background: var(--border);
+        }
+
+        .weekday,
+        .day-cell {
+            min-width: 0;
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            background: #fff;
+        }
+
+        .weekday {
+            padding: 7px 2px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 750;
+            text-align: center;
+        }
+
+        .weekday.sun { color: #cf222e; }
+        .weekday.sat { color: #0969da; }
+
+        .day-cell {
+            min-height: 82px;
+            padding: 6px;
+        }
+
+        .day-cell.outside {
+            background: #f6f8fa;
+            color: #8c959f;
+        }
+
+        .day-number {
+            margin-bottom: 5px;
+            font-size: 0.88rem;
+            font-weight: 750;
+        }
+
+        .day-number.today {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .garbage-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .garbage-tag {
+            display: block;
+            width: 100%;
+            padding: 3px 4px;
+            border-radius: 6px;
+            color: #1f2328;
+            font-size: 0.68rem;
+            font-weight: 700;
+            line-height: 1.15;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+        }
+
+        .burnable { background: var(--burnable); }
+        .plastic { background: var(--plastic); }
+        .paper { background: var(--paper); }
+        .bottle-can { background: var(--bottle-can); }
+        .pet-bottle { background: var(--pet-bottle); }
+        .nonburnable { background: var(--nonburnable); }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .legend .garbage-tag {
+            width: auto;
+            min-width: 88px;
+            text-align: center;
+        }
+
+        .empty-state {
+            margin-top: 40px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        @media (max-width: 520px) {
+            .container { padding-inline: 16px; }
+            .sheet { padding-inline: 12px; }
+            .day-cell {
+                min-height: 72px;
+                padding: 4px;
+            }
+            .garbage-tag { font-size: 0.6rem; }
+            .calendar-controls {
+                grid-template-columns: 1fr 1fr;
+            }
+            .month-title {
+                grid-column: 1 / -1;
+                grid-row: 1;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="spacer"></div>
 
-<div class="spacer"></div> <div class="container">
-    <div id="congrats-msg" class="congrats"></div>
-    
-    <div class="header-area">
-        <h1 id="title">Daily Tasks</h1>
-        <div id="date-display" class="date"></div>
-    </div>
-    
-    <div class="memo-in-container">
-        <textarea id="persistent-memo" placeholder="今日のメモ・記録..."></textarea>
-    </div>
+    <main class="container">
+        <div id="congrats-msg" class="congrats"></div>
 
-    <div id="task-list"></div>
+        <div class="header-area">
+            <h1>Daily Tasks</h1>
+            <div id="date-display" class="date"></div>
+        </div>
 
-    <button class="btn-history" onclick="toggleHistory(true)">履歴を確認する</button>
-</div>
+        <div class="memo-in-container">
+            <textarea id="persistent-memo" placeholder="今日のメモ・記録..."></textarea>
+        </div>
 
-<div id="history-panel">
-    <div class="history-header">
-        <span style="font-weight: bold; font-size: 1.1rem;">過去30日の記録</span>
-        <button onclick="toggleHistory(false)" style="border:none; background:none; font-size:1.8rem; color:#ccc; padding:0 10px;">×</button>
-    </div>
-    <div class="history-content" id="history-list"></div>
-</div>
+        <div id="task-list"></div>
 
-<script>
-    const TASKS = ["シダキュア", "電気", "エアコン", "社員証/社用携帯", "鍵"];
-    const today = new Date().toLocaleDateString('sv-SE'); 
+        <div class="button-row">
+            <button class="panel-button primary" type="button" onclick="toggleGarbageCalendar(true)">ごみカレンダー</button>
+            <button class="panel-button" type="button" onclick="toggleHistory(true)">履歴</button>
+        </div>
+    </main>
 
-    function init() {
-        document.getElementById('date-display').innerText = `${today.replace(/-/g, '/')}`;
-        const memo = document.getElementById('persistent-memo');
-        memo.value = localStorage.getItem('persistent_memo') || "";
-        memo.addEventListener('input', (e) => localStorage.setItem('persistent_memo', e.target.value));
+    <section id="calendar-panel" class="sheet" aria-label="ごみカレンダー">
+        <div class="sheet-header">
+            <div class="sheet-title">ごみカレンダー</div>
+            <button class="close-button" type="button" onclick="toggleGarbageCalendar(false)" aria-label="閉じる">×</button>
+        </div>
+        <div class="sheet-content">
+            <div class="calendar-controls">
+                <button type="button" onclick="moveCalendarMonth(-1)">前の月</button>
+                <div id="calendar-month-title" class="month-title"></div>
+                <button type="button" onclick="moveCalendarMonth(1)">次の月</button>
+            </div>
+            <div id="garbage-calendar" class="calendar-grid"></div>
+            <div class="legend">
+                <span class="garbage-tag burnable">もやすごみ</span>
+                <span class="garbage-tag plastic">プラスチック</span>
+                <span class="garbage-tag paper">古紙・古布</span>
+                <span class="garbage-tag bottle-can">びん・缶</span>
+                <span class="garbage-tag pet-bottle">ペットボトル</span>
+                <span class="garbage-tag nonburnable">もやさないごみ</span>
+            </div>
+        </div>
+    </section>
 
-        const savedDate = localStorage.getItem('last_visit_date');
-        if (savedDate && savedDate !== today) {
-            saveToHistory(savedDate);
-            localStorage.removeItem('checked_tasks');
+    <section id="history-panel" class="sheet" aria-label="履歴">
+        <div class="sheet-header">
+            <div class="sheet-title">過去30日の記録</div>
+            <button class="close-button" type="button" onclick="toggleHistory(false)" aria-label="閉じる">×</button>
+        </div>
+        <div class="sheet-content" id="history-list"></div>
+    </section>
+
+    <script>
+        const TASKS = ["シダキュア", "電気", "エアコン", "社員証/社用携帯", "鍵"];
+        const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
+        const todayDate = new Date();
+        const today = toDateKey(todayDate);
+        let calendarCursor = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1);
+
+        const GARBAGE_RULES = [
+            { label: "もやすごみ", className: "burnable", test: date => [1, 4].includes(date.getDay()) },
+            { label: "プラ", className: "plastic", test: date => date.getDay() === 5 },
+            { label: "古紙・古布", className: "paper", test: date => date.getDay() === 2 && [1, 3].includes(weekOfMonth(date)) },
+            { label: "びん・缶", className: "bottle-can", test: date => date.getDay() === 2 && [2, 4].includes(weekOfMonth(date)) },
+            { label: "ペットボトル", className: "pet-bottle", test: date => date.getDay() === 3 && weekOfMonth(date) === 1 },
+            { label: "もやさないごみ", className: "nonburnable", test: date => date.getDay() === 3 && weekOfMonth(date) === 3 }
+        ];
+
+        function init() {
+            document.getElementById("date-display").innerText = today.replace(/-/g, "/");
+
+            const memo = document.getElementById("persistent-memo");
+            memo.value = localStorage.getItem("persistent_memo") || "";
+            memo.addEventListener("input", event => {
+                localStorage.setItem("persistent_memo", event.target.value);
+            });
+
+            const savedDate = localStorage.getItem("last_visit_date");
+            if (savedDate && savedDate !== today) {
+                saveToHistory(savedDate);
+                localStorage.removeItem("checked_tasks");
+            }
+            localStorage.setItem("last_visit_date", today);
+
+            renderTasks();
         }
-        localStorage.setItem('last_visit_date', today);
-        renderTasks();
-    }
 
-    function saveToHistory(date) {
-        const checkedTasks = JSON.parse(localStorage.getItem('checked_tasks')) || {};
-        const history = JSON.parse(localStorage.getItem('task_history')) || {};
-        history[date] = checkedTasks;
-        const keys = Object.keys(history).sort().reverse();
-        const filtered = {};
-        keys.slice(0, 30).forEach(k => filtered[k] = history[k]);
-        localStorage.setItem('task_history', JSON.stringify(filtered));
-    }
-
-    function renderTasks() {
-        const taskList = document.getElementById('task-list');
-        const checkedTasks = JSON.parse(localStorage.getItem('checked_tasks')) || {};
-        taskList.innerHTML = '';
-        let count = 0;
-        TASKS.forEach(task => {
-            if (checkedTasks[task]) count++;
-            const item = document.createElement('div');
-            item.className = 'task-item';
-            item.innerHTML = `
-                <span class="task-label">${task}</span>
-                <label class="switch">
-                    <input type="checkbox" ${checkedTasks[task] ? 'checked' : ''} onchange="handleToggle(event, '${task}')">
-                    <span class="slider"></span>
-                </label>
-            `;
-            taskList.appendChild(item);
-        });
-        const isAllDone = count === TASKS.length;
-        document.body.classList.toggle('is-complete', isAllDone);
-        document.getElementById('congrats-msg').innerText = isAllDone ? "✨ 全て完了！ゆっくり休みましょう ✨" : "";
-    }
-
-    window.toggleHistory = function(show) {
-        const panel = document.getElementById('history-panel');
-        if (show) { renderHistoryList(); panel.classList.add('open'); }
-        else { panel.classList.remove('open'); }
-    }
-
-    function renderHistoryList() {
-        const history = JSON.parse(localStorage.getItem('task_history')) || {};
-        const list = document.getElementById('history-list');
-        const dates = Object.keys(history).sort().reverse();
-        if (dates.length === 0) {
-            list.innerHTML = '<div style="text-align:center; color:#ccc; margin-top:40px;">履歴はまだありません</div>';
-            return;
+        function toDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
         }
-        list.innerHTML = dates.map(date => {
-            const data = history[date];
-            const marks = TASKS.map(t => data[t] ? '●' : '×').join('');
-            const doneCount = TASKS.filter(t => data[t]).length;
-            return `
-                <div class="history-row">
-                    <span style="font-weight:600; color:#555;">${date.slice(5).replace('-', '/')}</span>
-                    <span style="letter-spacing:4px; color:#007bff; font-family:monospace; font-size:1.1rem;">${marks}</span>
-                    <span style="color:${doneCount===4?'#007bff':'#ccc'}; font-size:0.85rem;">${doneCount}/4</span>
-                </div>
-            `;
-        }).join('');
-    }
 
-    window.handleToggle = function(event, task) {
-        if (!event.target.checked && !confirm(`「${task}」をオフに戻しますか？`)) {
-            event.target.checked = true; return;
+        function weekOfMonth(date) {
+            return Math.floor((date.getDate() - 1) / 7) + 1;
         }
-        let checkedTasks = JSON.parse(localStorage.getItem('checked_tasks')) || {};
-        checkedTasks[task] = event.target.checked;
-        localStorage.setItem('checked_tasks', JSON.stringify(checkedTasks));
-        renderTasks();
-    };
 
-    init();
-</script>
+        function saveToHistory(date) {
+            const checkedTasks = JSON.parse(localStorage.getItem("checked_tasks")) || {};
+            const history = JSON.parse(localStorage.getItem("task_history")) || {};
+            history[date] = checkedTasks;
+
+            const filtered = {};
+            Object.keys(history).sort().reverse().slice(0, 30).forEach(key => {
+                filtered[key] = history[key];
+            });
+            localStorage.setItem("task_history", JSON.stringify(filtered));
+        }
+
+        function renderTasks() {
+            const taskList = document.getElementById("task-list");
+            const checkedTasks = JSON.parse(localStorage.getItem("checked_tasks")) || {};
+            taskList.innerHTML = "";
+
+            let count = 0;
+            TASKS.forEach(task => {
+                if (checkedTasks[task]) count++;
+
+                const item = document.createElement("div");
+                item.className = "task-item";
+                item.innerHTML = `
+                    <span class="task-label">${task}</span>
+                    <label class="switch">
+                        <input type="checkbox" ${checkedTasks[task] ? "checked" : ""} onchange="handleToggle(event, '${task}')">
+                        <span class="slider"></span>
+                    </label>
+                `;
+                taskList.appendChild(item);
+            });
+
+            const isAllDone = count === TASKS.length;
+            document.body.classList.toggle("is-complete", isAllDone);
+            document.getElementById("congrats-msg").innerText = isAllDone ? "全て完了。おつかれさまでした。" : "";
+        }
+
+        function getGarbageForDate(date) {
+            return GARBAGE_RULES.filter(rule => rule.test(date));
+        }
+
+        function renderGarbageCalendar() {
+            const year = calendarCursor.getFullYear();
+            const month = calendarCursor.getMonth();
+            const firstDate = new Date(year, month, 1);
+            const firstGridDate = new Date(year, month, 1 - firstDate.getDay());
+            const grid = document.getElementById("garbage-calendar");
+
+            document.getElementById("calendar-month-title").innerText = `${year}年 ${month + 1}月`;
+            grid.innerHTML = "";
+
+            WEEKDAYS.forEach((weekday, index) => {
+                const cell = document.createElement("div");
+                cell.className = `weekday ${index === 0 ? "sun" : ""} ${index === 6 ? "sat" : ""}`;
+                cell.innerText = weekday;
+                grid.appendChild(cell);
+            });
+
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(firstGridDate);
+                date.setDate(firstGridDate.getDate() + i);
+
+                const cell = document.createElement("div");
+                const isOutside = date.getMonth() !== month;
+                cell.className = `day-cell ${isOutside ? "outside" : ""}`;
+
+                const dayNumber = document.createElement("div");
+                dayNumber.className = `day-number ${toDateKey(date) === today ? "today" : ""}`;
+                dayNumber.innerText = date.getDate();
+                cell.appendChild(dayNumber);
+
+                if (!isOutside) {
+                    const list = document.createElement("div");
+                    list.className = "garbage-list";
+
+                    getGarbageForDate(date).forEach(item => {
+                        const tag = document.createElement("span");
+                        tag.className = `garbage-tag ${item.className}`;
+                        tag.innerText = item.label;
+                        list.appendChild(tag);
+                    });
+
+                    cell.appendChild(list);
+                }
+
+                grid.appendChild(cell);
+            }
+        }
+
+        window.toggleGarbageCalendar = function(show) {
+            const panel = document.getElementById("calendar-panel");
+            if (show) {
+                renderGarbageCalendar();
+                panel.classList.add("open");
+                return;
+            }
+            panel.classList.remove("open");
+        };
+
+        window.moveCalendarMonth = function(offset) {
+            calendarCursor = new Date(calendarCursor.getFullYear(), calendarCursor.getMonth() + offset, 1);
+            renderGarbageCalendar();
+        };
+
+        window.toggleHistory = function(show) {
+            const panel = document.getElementById("history-panel");
+            if (show) {
+                renderHistoryList();
+                panel.classList.add("open");
+                return;
+            }
+            panel.classList.remove("open");
+        };
+
+        function renderHistoryList() {
+            const history = JSON.parse(localStorage.getItem("task_history")) || {};
+            const list = document.getElementById("history-list");
+            const dates = Object.keys(history).sort().reverse();
+
+            if (dates.length === 0) {
+                list.innerHTML = '<div class="empty-state">履歴はまだありません</div>';
+                return;
+            }
+
+            list.innerHTML = dates.map(date => {
+                const data = history[date];
+                const marks = TASKS.map(task => data[task] ? "○" : "×").join("");
+                const doneCount = TASKS.filter(task => data[task]).length;
+                return `
+                    <div class="history-row">
+                        <span style="font-weight:650;">${date.slice(5).replace("-", "/")}</span>
+                        <span style="letter-spacing:4px; color:#0969da; font-family:monospace;">${marks}</span>
+                        <span style="color:${doneCount === TASKS.length ? "#0969da" : "#8c959f"};">${doneCount}/${TASKS.length}</span>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        window.handleToggle = function(event, task) {
+            if (!event.target.checked && !confirm(`「${task}」をオフに戻しますか？`)) {
+                event.target.checked = true;
+                return;
+            }
+
+            const checkedTasks = JSON.parse(localStorage.getItem("checked_tasks")) || {};
+            checkedTasks[task] = event.target.checked;
+            localStorage.setItem("checked_tasks", JSON.stringify(checkedTasks));
+            renderTasks();
+        };
+
+        init();
+    </script>
 </body>
 </html>
